@@ -16,6 +16,8 @@ class TodoListViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        loadData()
     }
 
     //MARK - Tableview Datasource Methods
@@ -82,6 +84,17 @@ class TodoListViewController: UITableViewController {
             try data.write(to: dataFilePath!)
         } catch {
             print("Error encoding item array, \(error)")
+        }
+    }
+    
+    func loadData() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Error decoding item array \(error)")
+            }
         }
     }
 
