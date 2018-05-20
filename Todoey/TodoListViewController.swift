@@ -7,17 +7,17 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
     
     var itemArray: [Item] = []
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     let TODO_ARRAY_KEY = "TodoItems"
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        loadData()
     }
 
     //MARK - Tableview Datasource Methods
@@ -65,7 +65,9 @@ class TodoListViewController: UITableViewController {
                 return
             }
             
-            let item = Item(title: itemText)
+            let item = Item(context: self.context)
+            item.title = itemText
+            item.done = false
             self.itemArray.append(item)
             self.saveItems()
             
@@ -78,24 +80,14 @@ class TodoListViewController: UITableViewController {
     
     //MARK - Other Methods
     func saveItems() {
-        let encoder = PropertyListEncoder()
+        
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+            try context.save()
         } catch {
-            print("Error encoding item array, \(error)")
+            print("Error saving context \(error)")
         }
-    }
-    
-    func loadData() {
-        if let data = try? Data(contentsOf: dataFilePath!) {
-            let decoder = PropertyListDecoder()
-            do {
-                itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("Error decoding item array \(error)")
-            }
-        }
+        
+        self.tableView.reloadData()
     }
 
 }
